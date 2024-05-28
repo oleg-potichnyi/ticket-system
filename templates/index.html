@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+    <h1>Tickets</h1>
+    <ul>
+        {% for ticket in tickets %}
+            <li><a href="{{ url_for('ticket', ticket_id=ticket.id) }}">{{ ticket.note }}</a> - {{ ticket.status }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

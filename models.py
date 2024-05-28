@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
 
@@ -41,7 +42,24 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(64), nullable=False)
     group_id = db.Column(db.Integer, db.ForeignKey("group.id"), nullable=True)
 
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def is_admin(self):
+        return self.role == UserRole.ADMIN
+
+    def is_manager(self):
+        return self.role == UserRole.MANAGER
+
+    def is_analyst(self):
+        return self.role == UserRole.ANALYST
+
 
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
+    users = db.relationship('User', backref='group', lazy=True)
+    tickets = db.relationship('Ticket', backref='group', lazy=True)

@@ -1,8 +1,8 @@
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, current_user, login_required
 from app import app, db
-from models import User, Ticket, Group
-from forms import LoginForm, RegistrationForm
+from models import User, Ticket, Group, UserRole
+from forms import LoginForm, RegistrationForm, TicketForm
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -10,7 +10,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 @app.route("/index")
 @login_required
 def index():
-    tickets = Ticket.query.all()
+    if current_user.is_admin():
+        tickets = Ticket.query.all()
+    elif current_user.is_manager() or current_user.is_analyst():
+        tickets = Ticket.query.filter_by(group_id=current_user.group_id).all()
+    else:
+        tickets = []
     return render_template("index.html", title="Home", tickets=tickets)
 
 
@@ -44,9 +49,38 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
-        user.password_hash = generate_password_hash(form.password.data)
+        user.set_password(form.password.data)
+        user.role = UserRole.ADMIN  # Default role, should be set appropriately
         db.session.add(user)
         db.session.commit()
         flash("Congratulations, you are now a registered user!")
         return redirect(url_for("login"))
     return render_template("register.html", title="Register", form=form)
+
+
+@app.route("/ticket/new", methods=["GET", "POST"])
+@login_required
+def new_ticket():
+    form = TicketForm()
+    if form.validate_on_submit():
+        ticket = Ticket(
+            note=form.note.data,
+            status=form.status.data,
+            group_id=current_user.group_id if current_user.is_manager() or current_user.is_analyst() else form.group_id.data,
+            user_id=current_user.id
+        )
+        db.session.add(ticket)
+        db.session.commit()
+        flash("Ticket has been created!")
+        return redirect(url_for("index"))
+    return render_template("new_ticket.html", title="New Ticket", form=form)
+
+
+@app.route("/ticket/<int:ticket_id>")
+@login_required
+def ticket(ticket_id):
+    ticket = Ticket.query.get_or_404(ticket_id)
+    if not current_user.is_admin() and ticket.group_id != current_user.group_id:
+        flash("You do not have access to this ticket.")
+        return redirect(url_for("index"))
+    return render_template("ticket.html", title="Ticket", ticket=ticket)

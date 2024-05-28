@@ -1,5 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField
+from wtforms import (
+    StringField,
+    PasswordField,
+    BooleanField,
+    SubmitField,
+    TextAreaField,
+    SelectField
+)
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 from models import User, TicketStatus, Group
 
@@ -33,10 +40,16 @@ class RegistrationForm(FlaskForm):
 
 class TicketForm(FlaskForm):
     note = TextAreaField("Note", validators=[DataRequired()])
-    status = SelectField("Status", choices=TicketStatus.choices, validators=[DataRequired()])
+    status = SelectField(
+        "Status",
+        choices=TicketStatus.choices,
+        validators=[DataRequired()]
+    )
     group_id = SelectField("Group", coerce=int, validators=[DataRequired()])
     submit = SubmitField("Create Ticket")
 
     def __init__(self, *args, **kwargs):
         super(TicketForm, self).__init__(*args, **kwargs)
-        self.group_id.choices = [(group.id, group.name) for group in Group.query.all()]
+        self.group_id.choices = [
+            (group.id, group.name) for group in Group.query.all()
+        ]

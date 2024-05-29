@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}New Ticket{% endblock %}
+{% block content %}
+    <h1>Create New Ticket</h1>
+    <form method="POST" action="{{ url_for('new_ticket') }}">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.note.label }}<br>
+            {{ form.note() }}<br>
+        </p>
+        <p>
+            {{ form.status.label }}<br>
+            {{ form.status() }}<br>
+        </p>
+        {% if current_user.is_admin() %}
+            <p>
+                {{ form.group_id.label }}<br>
+                {{ form.group_id() }}<br>
+            </p>
+        {% endif %}
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

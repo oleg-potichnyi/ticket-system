@@ -8,7 +8,7 @@ from wtforms import (
     SelectField
 )
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
-from models import User, TicketStatus, Group
+from app.models import User, TicketStatus, Group
 
 
 class LoginForm(FlaskForm):

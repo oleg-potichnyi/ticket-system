@@ -1,8 +1,8 @@
 from flask import render_template, flash, redirect, url_for
 from flask_login import login_user, logout_user, current_user, login_required
 from app import app, db
-from app.models import User, Ticket, UserRole
-from app.forms import LoginForm, RegistrationForm, TicketForm
+from ticket.models import User, Ticket, UserRole
+from ticket.forms import LoginForm, RegistrationForm, TicketForm
 
 
 @app.route("/")
@@ -63,7 +63,9 @@ def new_ticket():
         ticket = Ticket(
             note=form.note.data,
             status=form.status.data,
-            group_id=current_user.group_id if current_user.is_manager() or current_user.is_analyst() else form.group_id.data,
+            group_id=(current_user.group_id
+                      if current_user.is_manager() or current_user.is_analyst()
+                      else form.group_id.data),
             user_id=current_user.id
         )
         db.session.add(ticket)
@@ -77,7 +79,8 @@ def new_ticket():
 @login_required
 def ticket(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
-    if not current_user.is_admin() and ticket.group_id != current_user.group_id:
+    if (not current_user.is_admin() and
+            ticket.group_id != current_user.group_id):
         flash("You do not have access to this ticket.")
         return redirect(url_for("index"))
     return render_template("ticket.html", title="Ticket", ticket=ticket)

@@ -32,7 +32,7 @@ This is a simple ticket system web application built with Flask that implements 
 
 ### Prerequisites
 
-  - Python 3.x
+  - Python 3
   - Docker
   - Docker Compose
 
